@@ -66,6 +66,12 @@ class FitKit {
         return "water";
       case DataType.SLEEP:
         return "sleep";
+      case DataType.ACTIVE_MINUTES:
+        return "active_minutes";
+      case DataType.BODY_FAT:
+        return "body_fat";
+      case DataType.MINDFUL_MINUTES:
+        return "meditation";
     }
     throw Exception('dataType $type not supported');
   }
@@ -79,5 +85,8 @@ enum DataType {
   DISTANCE,
   ENERGY,
   WATER,
-  SLEEP
+  SLEEP,
+  ACTIVE_MINUTES,
+  BODY_FAT,
+  MINDFUL_MINUTES,
 }

@@ -34,6 +34,20 @@ extension HKSampleType {
                 }
             case "sleep":
                 return HKSampleType.categoryType(forIdentifier: .sleepAnalysis)
+                case "active_minutes":
+                if #available(iOS 9.3, *) {
+                return HKSampleType.quantityType(forIdentifier: .appleExerciseTime)
+                } else {
+                    return nil
+                }
+            case "body_fat":
+                return HKSampleType.quantityType(forIdentifier: .bodyFatPercentage)
+            case "meditation":
+                if #available(iOS 10, *) {
+                return HKSampleType.categoryType(forIdentifier: .mindfulSession)
+                } else {
+                    return nil
+                }           
             default:
                 return nil
             }
@@ -64,6 +78,12 @@ extension HKUnit {
                 return HKUnit.liter()
             case "sleep":
                 return HKUnit.minute() // this is ignored
+            case "active_minutes":
+                return HKUnit.minute()
+            case "body_fat":
+                return HKUnit.percent()
+            case "meditation":
+                return HKUnit.minute()
             default:
                 return nil
             }
