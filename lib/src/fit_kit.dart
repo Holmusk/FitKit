@@ -72,6 +72,8 @@ class FitKit {
         return "body_fat";
       case DataType.MINDFUL_MINUTES:
         return "meditation";
+      case DataType.WAIST_CIRCUMFERENCE:
+        return "waist_circumference";
     }
     throw Exception('dataType $type not supported');
   }
@@ -89,4 +91,5 @@ enum DataType {
   ACTIVE_MINUTES,
   BODY_FAT,
   MINDFUL_MINUTES,
+  WAIST_CIRCUMFERENCE,
 }
