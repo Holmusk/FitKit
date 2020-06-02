@@ -32,12 +32,14 @@ class FitKit {
     DateTime dateFrom,
     DateTime dateTo,
     int limit,
+    int interval,
   }) async {
     return await _channel.invokeListMethod('read', {
       "type": _dataTypeToString(type),
       "date_from": dateFrom?.millisecondsSinceEpoch ?? 1,
       "date_to": (dateTo ?? DateTime.now()).millisecondsSinceEpoch,
       "limit": limit,
+      "interval": interval ?? 60,
     }).then(
       (response) => response.map((item) => FitData.fromJson(item)).toList(),
     );
