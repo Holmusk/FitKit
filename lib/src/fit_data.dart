@@ -6,20 +6,18 @@ class FitData {
   final DateTime dateTo;
   final String source;
   final bool userEntered;
-  final int interval;
 
-  FitData(this.value, this.dateFrom, this.dateTo, this.source, this.userEntered,
-      this.interval);
+  FitData(
+      this.value, this.dateFrom, this.dateTo, this.source, this.userEntered);
 
   FitData.fromJson(Map<dynamic, dynamic> json)
       : value = json['value'],
         dateFrom = DateTime.fromMillisecondsSinceEpoch(json['date_from']),
         dateTo = DateTime.fromMillisecondsSinceEpoch(json['date_to']),
         source = json['source'],
-        userEntered = json['user_entered'],
-        interval = json['interval'];
+        userEntered = json['user_entered'];
 
   @override
   String toString() =>
-      'FitData(value: $value, dateFrom: $dateFrom, dateTo: $dateTo, source: $source, userEntered: $userEntered, interval: $interval)';
+      'FitData(value: $value, dateFrom: $dateFrom, dateTo: $dateTo, source: $source, userEntered: $userEntered)';
 }
