@@ -125,35 +125,76 @@ public class SwiftFitKitPlugin: NSObject, FlutterPlugin {
 
     private func readSample(request: ReadRequest, result: @escaping FlutterResult) {
         print("readSample: \(request.type)")
+        
+        let stepQuantityType = HKQuantityType.quantityType(forIdentifier: HKQuantityTypeIdentifier.stepCount)!
 
-        let predicate = HKQuery.predicateForSamples(withStart: request.dateFrom, end: request.dateTo, options: .strictStartDate)
-        let sortDescriptor = NSSortDescriptor(key: HKSampleSortIdentifierEndDate, ascending: request.limit == nil)
+        if(request.sampleType == stepQuantityType){
+            let last10Day = Calendar.current.date(byAdding: .day, value: -1, to: Date())!
+            var interval = DateComponents()
+            interval.minute = request.interval
+            let query = HKStatisticsCollectionQuery(quantityType: stepQuantityType,
+                                            quantitySamplePredicate: nil,
+                                            options: .cumulativeSum,
+                                            anchorDate: last10Day,
+                                            intervalComponents: interval)
+            var samples:[Any] = []
+            query.initialResultsHandler = {
+                query, results, error in
+                print(results!)
 
-        let query = HKSampleQuery(sampleType: request.sampleType, predicate: predicate, limit: request.limit ?? HKObjectQueryNoLimit, sortDescriptors: [sortDescriptor]) {
-            _, samplesOrNil, error in
+                guard let statsCollection = results else {
+                    // Perform proper error handling here
+                    fatalError("*** An error occurred while calculating the statistics: \(String(describing: error?.localizedDescription)) ***")
+                }
+                let endDate = Date()
+                statsCollection.enumerateStatistics(from: last10Day, to: endDate, with: { (statistics, stop) in
+                    if let quantity = statistics.sumQuantity() {
+                        let startDateTime = statistics.startDate
+                        let endDateTime = statistics.startDate.addingTimeInterval(TimeInterval(60 * request.interval))
+                        let value = quantity.doubleValue(for: HKUnit.count())
+                        samples.append(["value": value,
+                                        "date_from": startDateTime,
+                                        "date_to": endDateTime,
+                                        "source": request.sampleType,
+                                        "user_entered":"false"])
 
-            guard var samples = samplesOrNil else {
-                result(FlutterError(code: self.TAG, message: "Results are null", details: error))
-                return
+                    }
+                })
+                result(samples)
             }
+            healthStore!.execute(query)
+        } else {
+            let predicate = HKQuery.predicateForSamples(withStart: request.dateFrom, end: request.dateTo, options: .strictStartDate)
+            let sortDescriptor = NSSortDescriptor(key: HKSampleSortIdentifierEndDate, ascending: request.limit == nil)
 
-            if (request.limit != nil) {
-                // if limit is used sort back to ascending
-                samples = samples.sorted(by: { $0.startDate.compare($1.startDate) == .orderedAscending })
+            let query = HKSampleQuery(sampleType: request.sampleType, predicate: predicate, limit: request.limit ?? HKObjectQueryNoLimit, sortDescriptors: [sortDescriptor]) {
+                _, samplesOrNil, error in
+
+                guard var samples = samplesOrNil else {
+                    result(FlutterError(code: self.TAG, message: "Results are null", details: error))
+                    return
+                }
+
+                if (request.limit != nil) {
+                    // if limit is used sort back to ascending
+                    samples = samples.sorted(by: { $0.startDate.compare($1.startDate) == .orderedAscending })
+                }
+
+                print(samples)
+                result(samples.map { sample -> NSDictionary in
+                    [
+                        "value": self.readValue(sample: sample, unit: request.unit),
+                        "date_from": Int(sample.startDate.timeIntervalSince1970 * 1000),
+                        "date_to": Int(sample.endDate.timeIntervalSince1970 * 1000),
+                        "source": self.readSource(sample: sample),
+                        "user_entered": sample.metadata?[HKMetadataKeyWasUserEntered] as? Bool == true
+                    ]
+                })
             }
-
-            print(samples)
-            result(samples.map { sample -> NSDictionary in
-                [
-                    "value": self.readValue(sample: sample, unit: request.unit),
-                    "date_from": Int(sample.startDate.timeIntervalSince1970 * 1000),
-                    "date_to": Int(sample.endDate.timeIntervalSince1970 * 1000),
-                    "source": self.readSource(sample: sample),
-                    "user_entered": sample.metadata?[HKMetadataKeyWasUserEntered] as? Bool == true
-                ]
-            })
+            healthStore!.execute(query)
         }
-        healthStore!.execute(query)
+
+
     }
 
     private func readValue(sample: HKSample, unit: HKUnit) -> Any {
