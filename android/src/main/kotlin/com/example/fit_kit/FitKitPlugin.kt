@@ -175,7 +175,7 @@ class FitKitPlugin(private val registrar: Registrar) : MethodCallHandler {
 
     private fun readSample(request: ReadRequest<Type.Sample>, result: Result) {
         Log.d(TAG, "readSample: ${request.type}")
-
+        Log.d(TAG, "INTERVAL: ${request.interval}");
         val readRequest = DataReadRequest.Builder()
                 .read(request.type.dataType)
                 .also { builder ->
