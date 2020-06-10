@@ -152,15 +152,23 @@ public class SwiftFitKitPlugin: NSObject, FlutterPlugin {
                         let startDateTime = statistics.startDate
                         let endDateTime = statistics.startDate.addingTimeInterval(TimeInterval(60 * request.interval))
                         let value = quantity.doubleValue(for: HKUnit.count())
-                        samples.append(["value": value,
-                                        "date_from": startDateTime,
-                                        "date_to": endDateTime,
-                                        "source": request.sampleType,
-                                        "user_entered":"false"])
+//                        samples.append(["value": value,
+//                                        "date_from": startDateTime,
+//                                        "date_to": endDateTime,
+//                                        "source": request.sampleType,
+//                                        "user_entered":"false"])
+                        result(samples.map { sample -> NSDictionary in
+                            [
+                                "value": value,
+                                "date_from": startDateTime,
+                                "date_to": endDateTime,
+                                "source": request.sampleType,
+                                "user_entered": false
+                            ]
+                        })
 
                     }
                 })
-                result(samples)
             }
             healthStore!.execute(query)
         } else {
@@ -180,7 +188,6 @@ public class SwiftFitKitPlugin: NSObject, FlutterPlugin {
                     samples = samples.sorted(by: { $0.startDate.compare($1.startDate) == .orderedAscending })
                 }
 
-                print(samples)
                 result(samples.map { sample -> NSDictionary in
                     [
                         "value": self.readValue(sample: sample, unit: request.unit),
