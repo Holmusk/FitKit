@@ -129,45 +129,45 @@ public class SwiftFitKitPlugin: NSObject, FlutterPlugin {
         let stepQuantityType = HKQuantityType.quantityType(forIdentifier: HKQuantityTypeIdentifier.stepCount)!
 
         if(request.sampleType == stepQuantityType){
-            let last10Day = Calendar.current.date(byAdding: .day, value: -1, to: Date())!
+            let dayDifference = Calendar.current.dateComponents([.day], from: request.dateFrom, to: request.dateTo)
+            let lastXnumOfDays = Calendar.current.date(byAdding: .day, value: -dayDifference.day!, to: Date())!
             var interval = DateComponents()
             interval.minute = request.interval
             let query = HKStatisticsCollectionQuery(quantityType: stepQuantityType,
                                             quantitySamplePredicate: nil,
                                             options: .cumulativeSum,
-                                            anchorDate: last10Day,
+                                            anchorDate: lastXnumOfDays,
                                             intervalComponents: interval)
-            var samples:[Any] = []
+            var samples:[[String:Any]] = []
             query.initialResultsHandler = {
                 query, results, error in
-                print(results!)
-
                 guard let statsCollection = results else {
-                    // Perform proper error handling here
-                    fatalError("*** An error occurred while calculating the statistics: \(String(describing: error?.localizedDescription)) ***")
+                    result(FlutterError(code: self.TAG, message: "An error occurred while calculating the statistic", details: error))
+                    return
                 }
                 let endDate = Date()
-                statsCollection.enumerateStatistics(from: last10Day, to: endDate, with: { (statistics, stop) in
+                statsCollection.enumerateStatistics(from: lastXnumOfDays, to: endDate, with: { (statistics, stop) in
                     if let quantity = statistics.sumQuantity() {
                         let startDateTime = statistics.startDate
                         let endDateTime = statistics.startDate.addingTimeInterval(TimeInterval(60 * request.interval))
                         let value = quantity.doubleValue(for: HKUnit.count())
-//                        samples.append(["value": value,
-//                                        "date_from": startDateTime,
-//                                        "date_to": endDateTime,
-//                                        "source": request.sampleType,
-//                                        "user_entered":"false"])
-                        result(samples.map { sample -> NSDictionary in
-                            [
-                                "value": value,
-                                "date_from": startDateTime,
-                                "date_to": endDateTime,
-                                "source": request.sampleType,
-                                "user_entered": false
-                            ]
-                        })
+                        samples.append([
+                            "value": value,
+                            "date_from": startDateTime,
+                            "date_to": endDateTime
+                        ])
 
-                    }
+                        }
+                    })
+                result(samples.map{
+                    sample -> NSDictionary in
+                        [
+                            "value": sample["value"]!,
+                            "date_from": Int((sample["date_from"]! as AnyObject).timeIntervalSince1970 * 1000),
+                            "date_to": Int((sample["date_to"]! as AnyObject).timeIntervalSince1970 * 1000),
+                            "source": "Health",
+                            "user_entered": false
+                        ]
                 })
             }
             healthStore!.execute(query)
@@ -188,6 +188,7 @@ public class SwiftFitKitPlugin: NSObject, FlutterPlugin {
                     samples = samples.sorted(by: { $0.startDate.compare($1.startDate) == .orderedAscending })
                 }
 
+                print(samples)
                 result(samples.map { sample -> NSDictionary in
                     [
                         "value": self.readValue(sample: sample, unit: request.unit),
@@ -201,7 +202,8 @@ public class SwiftFitKitPlugin: NSObject, FlutterPlugin {
             healthStore!.execute(query)
         }
 
-
+        
+        
     }
 
     private func readValue(sample: HKSample, unit: HKUnit) -> Any {
@@ -221,4 +223,5 @@ public class SwiftFitKitPlugin: NSObject, FlutterPlugin {
 
         return sample.source.name;
     }
+    
 }
