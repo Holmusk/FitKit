@@ -12,14 +12,16 @@ class ReadRequest {
     let dateFrom: Date
     let dateTo: Date
     let limit: Int?
+    let interval: Int
 
-    private init(type: String, sampleType: HKSampleType, unit: HKUnit, dateFrom: Date, dateTo: Date, limit: Int?) {
+    private init(type: String, sampleType: HKSampleType, unit: HKUnit, dateFrom: Date, dateTo: Date, limit: Int?, interval: Int) {
         self.type = type;
         self.sampleType = sampleType
         self.unit = unit
         self.dateFrom = dateFrom
         self.dateTo = dateTo
         self.limit = limit
+        self.interval = interval
     }
 
     static func fromCall(call: FlutterMethodCall) throws -> ReadRequest {
@@ -35,7 +37,8 @@ class ReadRequest {
         let dateFrom = Date(timeIntervalSince1970: dateFromEpoch.doubleValue / 1000)
         let dateTo = Date(timeIntervalSince1970: dateToEpoch.doubleValue / 1000)
         let limit = arguments["limit"] as? Int
+        let interval = arguments["interval"] as! Int
 
-        return ReadRequest(type: type, sampleType: sampleType, unit: unit, dateFrom: dateFrom, dateTo: dateTo, limit: limit)
+        return ReadRequest(type: type, sampleType: sampleType, unit: unit, dateFrom: dateFrom, dateTo: dateTo, limit: limit, interval: interval)
     }
 }

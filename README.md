@@ -46,6 +46,23 @@ void readAll() async {
   }
 }
 ```
+## Sample Usage for getting Interval Data
+You can add a new parameter call `interval`, which takes in an integer and the time unit is set to minutes. The following exaple shows getting interval data per 5 minutes. If `interval` is not used, the default interval would be set 60 minutes.
+```dart
+void readAll() async {
+  if (await FitKit.requestPermissions(DataType.values)) {
+    for (DataType type in DataType.values) {
+      final results = await FitKit.read(
+        type,
+        dateFrom: DateTime.now().subtract(Duration(days: 5)),
+        dateTo: DateTime.now(),
+        interval: 5,
+      );
+    }
+  }
+}
+```
+
 
 ## Supported data types
 
