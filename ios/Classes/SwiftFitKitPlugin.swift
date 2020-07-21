@@ -129,14 +129,12 @@ public class SwiftFitKitPlugin: NSObject, FlutterPlugin {
         let stepQuantityType = HKQuantityType.quantityType(forIdentifier: HKQuantityTypeIdentifier.stepCount)!
 
         if(request.sampleType == stepQuantityType){
-            let dayDifference = Calendar.current.dateComponents([.day], from: request.dateFrom, to: request.dateTo)
-            let lastXnumOfDays = Calendar.current.date(byAdding: .day, value: -dayDifference.day!, to: Date())!
             var interval = DateComponents()
             interval.minute = request.interval
             let query = HKStatisticsCollectionQuery(quantityType: stepQuantityType,
                                             quantitySamplePredicate: nil,
                                             options: .cumulativeSum,
-                                            anchorDate: lastXnumOfDays,
+                                            anchorDate: request.dateFrom,
                                             intervalComponents: interval)
             var samples:[[String:Any]] = []
             query.initialResultsHandler = {
@@ -145,8 +143,7 @@ public class SwiftFitKitPlugin: NSObject, FlutterPlugin {
                     result(FlutterError(code: self.TAG, message: "An error occurred while calculating the statistic", details: error))
                     return
                 }
-                let endDate = Date()
-                statsCollection.enumerateStatistics(from: lastXnumOfDays, to: endDate, with: { (statistics, stop) in
+                statsCollection.enumerateStatistics(from: request.dateFrom, to: request.dateTo, with: { (statistics, stop) in
                     if let quantity = statistics.sumQuantity() {
                         let startDateTime = statistics.startDate
                         let endDateTime = statistics.startDate.addingTimeInterval(TimeInterval(60 * request.interval))
