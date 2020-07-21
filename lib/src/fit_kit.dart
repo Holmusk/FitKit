@@ -32,12 +32,14 @@ class FitKit {
     DateTime dateFrom,
     DateTime dateTo,
     int limit,
+    int interval,
   }) async {
     return await _channel.invokeListMethod('read', {
       "type": _dataTypeToString(type),
       "date_from": dateFrom?.millisecondsSinceEpoch ?? 1,
       "date_to": (dateTo ?? DateTime.now()).millisecondsSinceEpoch,
       "limit": limit,
+      "interval": interval ?? 60,
     }).then(
       (response) => response.map((item) => FitData.fromJson(item)).toList(),
     );
@@ -72,6 +74,8 @@ class FitKit {
         return "body_fat";
       case DataType.MINDFUL_MINUTES:
         return "meditation";
+      case DataType.WAIST_CIRCUMFERENCE:
+        return "waist_circumference";
     }
     throw Exception('dataType $type not supported');
   }
@@ -89,4 +93,5 @@ enum DataType {
   ACTIVE_MINUTES,
   BODY_FAT,
   MINDFUL_MINUTES,
+  WAIST_CIRCUMFERENCE,
 }

@@ -4,6 +4,7 @@ import com.google.android.gms.fitness.FitnessActivities
 import com.google.android.gms.fitness.FitnessOptions
 import com.google.android.gms.fitness.data.DataType
 import com.google.android.gms.fitness.data.Session
+import com.google.android.gms.fitness.data.Field
 
 @Throws
 fun String.fromDartType(): Type {
@@ -19,6 +20,7 @@ fun String.fromDartType(): Type {
         "active_minutes" -> Type.Sample(DataType.TYPE_MOVE_MINUTES)
         "body_fat" -> Type.Sample(DataType.TYPE_BODY_FAT_PERCENTAGE)
         "meditation" -> Type.Activity(FitnessActivities.MEDITATION)
+        "waist_circumference" -> Type.Sample(DataType("com.google.body.waist.circumference", "https://www.googleapis.com/auth/fitness.body.read", "https://www.googleapis.com/auth/fitness.body.write", Field.FIELD_CIRCUMFERENCE))
 
         else -> throw Exception("type $this is not supported")
     }

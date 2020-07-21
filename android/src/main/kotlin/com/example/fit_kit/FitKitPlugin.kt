@@ -175,13 +175,13 @@ class FitKitPlugin(private val registrar: Registrar) : MethodCallHandler {
 
     private fun readSample(request: ReadRequest<Type.Sample>, result: Result) {
         Log.d(TAG, "readSample: ${request.type}")
-
+        Log.d(TAG, "INTERVAL: ${request.interval}");
         val readRequest = DataReadRequest.Builder()
                 .read(request.type.dataType)
                 .also { builder ->
                     when (request.limit != null) {
                         true -> builder.setLimit(request.limit)
-                        else -> builder.bucketByTime(1, TimeUnit.DAYS)
+                        else -> builder.bucketByTime(request.interval, TimeUnit.MINUTES)
                     }
                 }
                 .setTimeRange(request.dateFrom.time, request.dateTo.time, TimeUnit.MILLISECONDS)

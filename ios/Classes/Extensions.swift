@@ -42,6 +42,12 @@ extension HKSampleType {
                 }
             case "body_fat":
                 return HKSampleType.quantityType(forIdentifier: .bodyFatPercentage)
+            case "waist_circumference":
+                if #available(iOS 11, *) {
+                    return HKSampleType.quantityType(forIdentifier: .waistCircumference)
+                } else {
+                    return nil
+                }
             case "meditation":
                 if #available(iOS 10, *) {
                 return HKSampleType.categoryType(forIdentifier: .mindfulSession)
@@ -84,6 +90,8 @@ extension HKUnit {
                 return HKUnit.percent()
             case "meditation":
                 return HKUnit.minute()
+            case "waist_circumference":
+                return HKUnit.meterUnit(with: .centi)
             default:
                 return nil
             }
